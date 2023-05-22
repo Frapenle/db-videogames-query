@@ -119,4 +119,60 @@ FROM videogames v
 	JOIN category_videogame cv 
 	ON v.id = cv.videogame_id;
 
+# 4 - Selezionare i dati di tutte le software house che hanno rilasciato almeno un gioco dopo il 2020, mostrandoli una sola volta (6)
+SELECT DISTINCT sh.*
+FROM software_houses sh 
+	JOIN videogames v 
+	ON sh.id = v.software_house_id
+WHERE YEAR (v.release_date) > 2020;
 
+# 5 - Selezionare i premi ricevuti da ogni software house per i videogiochi che ha prodotto (55)
+SELECT sh.name AS 'Software house', a.name AS 'Premio'
+FROM software_houses sh
+	JOIN videogames v
+	ON sh.id = v.software_house_id
+	JOIN award_videogame av
+	ON v.id = av.videogame_id
+	JOIN awards a
+	ON av.award_id = a.id;
+
+# 6 - Selezionare categorie e classificazioni PEGI dei videogiochi che hanno ricevuto recensioni da 4 e 5 stelle, mostrandole una sola volta (3363)
+SELECT DISTINCT v.name AS Gioco, c.name AS Categoria, pl.name AS Pegi
+FROM videogames v 
+	JOIN category_videogame cv ON v.id = cv.videogame_id
+	JOIN categories c ON cv.category_id  = c.id
+	JOIN pegi_label_videogame plv ON v.id = plv.videogame_id 
+	JOIN pegi_labels pl ON plv.pegi_label_id = pl.id 
+	JOIN reviews r ON v.id = r.videogame_id 
+WHERE r.rating IN (4, 5);
+
+# 7 - Selezionare quali giochi erano presenti nei tornei nei quali hanno partecipato i giocatori il cui nome inizia per 'S' (474)
+SELECT DISTINCT v.id, v.name
+FROM videogames v 
+	JOIN tournament_videogame tv ON v.id = tv.videogame_id 
+	JOIN tournaments t ON t.id = tv.tournament_id 
+	JOIN player_tournament pt ON t.id = pt.tournament_id
+	JOIN players p ON pt.player_id = p.id 
+WHERE p.name LIKE "%s";
+
+# 8 - Selezionare le città in cui è stato giocato il gioco dell'anno del 2018 (36)
+SELECT t.city, v.name, av.`year`
+FROM videogames v
+	JOIN tournament_videogame tv ON v.id = tv.videogame_id 
+	JOIN tournaments t ON tv.tournament_id = t.id
+	JOIN award_videogame av ON v.id = av.videogame_id 
+	JOIN awards a ON av.award_id = a.id 
+WHERE a.name LIKE "gioco dell'anno" AND av.`year` = 2018;
+
+# 9 - Selezionare i giocatori che hanno giocato al gioco più atteso del 2018 in un torneo del 2019 (3306)
+SELECT p.name, t.name AS torneo, a.name AS award
+FROM awards a
+	JOIN award_videogame av ON a.id = av.award_id
+	JOIN videogames v ON av.videogame_id = v.id
+	JOIN tournament_videogame tv ON tv.videogame_id = v.id
+	JOIN tournaments t ON t.id = tv.tournament_id
+	JOIN player_tournament pt ON pt.tournament_id = t.id
+	JOIN players p ON p.id = pt.player_id
+WHERE a.name LIKE "gioco più atteso"
+	AND av.`year` = 2018
+	AND t.`year` = 2019;
